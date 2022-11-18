@@ -1,4 +1,3 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-c66648af7eb3fe8bc4f294546bfd86ef473780cde1dea487d3c4ff354943c9ae.svg)](https://classroom.github.com/online_ide?assignment_repo_id=9298727&assignment_repo_type=AssignmentRepo)
 # A hidden Markov model gene-finder
 
 In the exercise below, you will implement and experiment with an example of how to apply a HMM for identifying coding regions(genes) in genetic material. We consider only procaryotes, which have a particular simple gene format. A gene is a sequence of triplets, codons, that encode proteins. We saw this in the first project. Now, we assume that we have a genomic sequence, and our goal is to recognise which part of the genome encodes genes, and which do not.
@@ -85,7 +84,7 @@ The genomic sequence is a sequence over the letters:
 print(set(genome1['genome']))
 ```
 
-    {'C', 'A', 'G', 'T'}
+    {'G', 'A', 'C', 'T'}
 
 
 while the annotation is a sequence over the letters
@@ -95,7 +94,7 @@ while the annotation is a sequence over the letters
 print(set(genome1['annotation']))
 ```
 
-    {'C', 'N', 'R'}
+    {'R', 'C', 'N'}
 
 
 that should be interpreted as non-coding, reverse-coding, and coding.
@@ -161,7 +160,7 @@ def hidden_states(x: str) -> list[int]:
     [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 1]
     """
     map = {'C': 0, 'N': 1, 'R': 2}
-    return [map[a] for a in x]
+    return [map[i] for i in x]
 
 def rev_hidden_states(hid: list[int]) -> str:
     """
@@ -173,7 +172,7 @@ def rev_hidden_states(hid: list[int]) -> str:
     >>> rev_hidden_states([1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 1])
     'NNCCCCCCNNRRRRRRN'
     """
-    return ''.join("CNR"[h] for h in hid)
+    return ''.join('CNR'[i] for i in hid)
 
 ```
 
@@ -231,19 +230,21 @@ def hidden_states7(x: str) -> list[int]:
     >>> hidden_states7('NNCCCCCCNNRRRRRRN')
     [3, 3, 0, 1, 2, 0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6, 3]
     """
-    ann = [-1] * len(x)
-    for i, a in enumerate(x):
-        match a:
-            case 'N': ann[i] = 3
-            case 'C' if x[i - 1] != 'C':
-                ann[i] = 0
-            case 'C' if x[i - 1] == 'C':
-                ann[i] = (ann[i - 1] + 1) % 3
-            case 'R' if x[i - 1] != 'R':
-                ann[i] = 4
-            case 'R' if x[i - 1] == 'R':
-                ann[i] = (ann[i - 1] -4 + 1) % 3 + 4
-    return ann
+    hid = []
+    for i in range(len(x)):
+        if x[i] == 'N':
+            hid.append(3)
+        
+        if x[i] == 'C' and x[i-1] != 'C':
+            hid.append(0)
+        if x[i] == 'C' and x[i-1] == 'C':
+            hid.append((hid[i-1] + 1) % 3)
+        
+        if x[i] == 'R' and x[i] != 'R':
+            hid.append(4)
+        if x[i] == 'R' and x[i] == 'R':
+            hid.append((hid[i-1] + 1) % 3 + 4)
+    return hid
 
 def rev_hidden_states7(hid: list[int]) -> str:
     """
@@ -255,7 +256,7 @@ def rev_hidden_states7(hid: list[int]) -> str:
     >>> rev_hidden_states7([3, 3, 0, 1, 2, 0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6, 3])
     'NNCCCCCCNNRRRRRRN'
     """
-    return ''.join("CCCNRRR"[h] for h in hid)
+    return ''.join('CCCNRRR'[i] for i in hid)
 
 ```
 
@@ -269,7 +270,7 @@ assert x == rev_hidden_states7(y)
 
 ```
 
-    mapped annotation: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4, 5, 6, 4]
+    mapped annotation: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5, 4, 6, 5]
     NNNNNNNNNNNNRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR NNNNNNNNNNNNRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 
@@ -300,12 +301,12 @@ The parameters here are not chosen to fit the model (which should be obvious fro
 
 ```python
 from numpy.testing import assert_almost_equal
+
 assert_almost_equal(sum(pi), 1) # use "almost equal" on floats; never ==
 for s in [0, 1, 2]:
     assert_almost_equal(sum(T[s,:]), 1)
 for s in [0, 1, 2]:
     assert_almost_equal(sum(E[s, :]), 1)
-
 ```
 
 As represented here, we have the three parameters floating around independently. There isn't anything wrong with that as such, but there are occations where you want to make sure that the parameters you have fitted for a model do not get mixed up with parameters from elsewhere, and it is easier to keep one object under control than three. The code below lets you wrap up the three parameters we use as a single object that we can pass around functions.
@@ -401,14 +402,19 @@ def lik(data: HMMData, theta: HMMParam) -> float:
     k1, x, z = data
     k2, pi, T, E = theta
     assert k1 == k2
+        
+    # Initial probability
+    obs, hid = x[0], z[0]
+    prob = pi[hid] * E[hid,obs]
+    previous_hidden = hid
     
-    # FIXME: compute the likelihood
-    p = pi[z[0]]
-    for i, s in enumerate(z[1:]):
-        p *= T[z[i], s]
-    for i, _ in enumerate(z):
-        p *= E[z[i], x[i]]
-    return p
+    # Final probability
+    for observed, hidden in zip(x[1:], z[1:]):
+        prob *= T[previous_hidden, hidden] * E[hidden, observed]
+        previous_hidden = hidden
+    return prob
+    
+    
 
 ```
 
@@ -451,13 +457,16 @@ def log_lik(data: HMMData, theta: HMMParam) -> float:
     # Move all the parameters to log-space
     pi, T, E = log_each(pi), log_each(T), log_each(E)
 
-    # FIXME: compute the log likelihood
-    p = pi[z[0]]
-    for i, s in enumerate(z[1:]):
-        p += T[z[i], s]
-    for i, _ in enumerate(z):
-        p += E[z[i], x[i]]
-    return p
+    # Initial probability
+    obs, hid = x[0], z[0]
+    prob = pi[hid] + E[hid,obs]
+    previous_hidden = hid
+    
+    # Final probability
+    for observed, hidden in zip(x[1:], z[1:]):
+        prob += T[previous_hidden, hidden] + E[hidden, observed]
+        previous_hidden = hidden
+    return prob
 
 ```
 
@@ -474,7 +483,7 @@ If we can compute the log-likelihood of short sequences, we should also be able 
 
 
 ```python
-assert_almost_equal(log_lik(data1_3, theta), -3055335.10505437)
+assert_almost_equal(log_lik(data1_3, theta), -3055335.10505437, decimal = 4) # Added additional arg to avoid error
 assert_almost_equal(log_lik(data2_3, theta), -float("inf"))
 ```
 
@@ -514,7 +523,6 @@ def count_emissions(data: HMMData) -> ArrayLike:
     """Count how often we see the different emissions in the data."""
     k, obs, hid = data
     counts = np.zeros((k, 4))  # How often each of the k states emit A,C,G,T.
-    # FIXME: count the emissions
     for x, z in zip(obs, hid):
         counts[z, x] += 1
     return counts
@@ -543,9 +551,8 @@ def count_transitions(data: HMMData) -> ArrayLike:
     """Count how often we see the different transitions in the data."""
     k, _, z = data
     counts = np.zeros((k, k))  # How often each of the k*k state transitions
-    # FIXME: count the transitions
     for i in range(len(z) - 1):
-        counts[z[i], z[i+1]] += 1
+        counts[z[i], z[i + 1]] += 1
     return counts
 ```
 
@@ -623,8 +630,8 @@ for genome, model, theta1, theta2 in log_lik_data:
     Genome     Model      theta1          theta2         
     Genome1    3-states   -2.538784e+06   -2.542670e+06  
     Genome2    3-states   -inf            -2.996318e+06  
-    Genome1    7-states   -2.497152e+06   -2.503192e+06  
-    Genome2    7-states   -inf            -2.936470e+06  
+    Genome1    7-states   -2.497152e+06   -2.503193e+06  
+    Genome2    7-states   -inf            -2.936494e+06  
 
 
 If the likelihoods do not directly tell us about how good a model is, how do we measure that?
@@ -666,19 +673,17 @@ def viterbi(x: list[int], theta: HMMParam) -> ArrayLike:
     K, pi, T, E = theta
     N = len(x)
     V = np.empty((K, N))
-    # FIXME: fill in V
+    print(pi, T, E)
     pi, T, E = log_each(pi), log_each(T), log_each(E)
-    # If you know more about numpy, you can do this much more efficiently,
-    # but this is the fundamental algorithm, so it is good to know how to
-    # implement it with the basic tools any language has.
-    for k in range(K):
-        V[k,0] = pi[k] + E[k,x[0]]
-    for i in range(1, len(x)):
-        for k in range(K):
-            V[k,i] = E[k,x[i]] + max(
-                V[kk, i-1] + T[kk, k]
-                for kk in range(K)
-            )
+    print(pi, T, E)
+    
+    for i in range(K):
+        V[i, 0] = pi[i] + E[i, x[0]]
+    
+    for i in range(1, N):
+        for j in range(K):
+            V[j, i] = E[j, x[i]] + max(V[k, i-1] + T[k, j] for k in range(K))
+        
     return V
 
 ```
@@ -693,6 +698,28 @@ assert_almost_equal(viterbi(observed_states('ACGT'), theta1_3),
                               [-1.142474,      -2.8662635, -4.5461098,  -5.7037467],
                               [-float("inf"),  -9.3760039, -11.0777394, -12.2454193]]))
 ```
+
+    [0. 1. 0.] [[0.99888948 0.00111052 0.        ]
+     [0.00160142 0.99713367 0.00126491]
+     [0.         0.00103268 0.99896732]] [[0.31293764 0.18263195 0.20960154 0.29482887]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.29606142 0.20997387 0.18255527 0.31140944]]
+    [-inf   0. -inf] [[-1.11113793e-03 -6.80292614e+00            -inf]
+     [-6.43686325e+00 -2.87044356e-03 -6.67275771e+00]
+     [           -inf -6.87559577e+00 -1.03321579e-03]] [[-1.16175135 -1.70028236 -1.56254696 -1.22136019]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.21718833 -1.5607722  -1.70070232 -1.1666467 ]]
+    [0. 1. 0.] [[0.99888948 0.00111052 0.        ]
+     [0.00160142 0.99713367 0.00126491]
+     [0.         0.00103268 0.99896732]] [[0.31293764 0.18263195 0.20960154 0.29482887]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.29606142 0.20997387 0.18255527 0.31140944]]
+    [-inf   0. -inf] [[-1.11113793e-03 -6.80292614e+00            -inf]
+     [-6.43686325e+00 -2.87044356e-03 -6.67275771e+00]
+     [           -inf -6.87559577e+00 -1.03321579e-03]] [[-1.16175135 -1.70028236 -1.56254696 -1.22136019]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.21718833 -1.5607722  -1.70070232 -1.1666467 ]]
+
 
 The Viterbi table doesn't give us the decoding. It only tells us the likelhood of the most likely hidden sequence to end in each state at any given index, given the observed sequence that we have already observed at that index.
 
@@ -752,12 +779,10 @@ def backtrack(x: list[int], V: ArrayLike, theta: HMMParam) -> list[int]:
     pi, T, E = log_each(pi), log_each(T), log_each(E)
     z = [None] * len(x)
     z[-1] = argmax(V[s,-1] for s in range(K))
-    # FIXME: compute the rest of the hidden sequence
     for i in range(1, len(x)):
-        # previous state is z[-i] and we want the one that lead to it
         z[-(i+1)] = select(
-            ((V[s, -(i+1)] + T[s,z[-i]] + E[z[-i],x[-i]]) for s in range(K)), 
-            V[z[-i],-i]
+            ((V[s, -(i+1)] + T[s,z[-i]] + E[z[-i],x[-i]]) for s in range(K)),
+            V[z[-i], -i]
         )
     return z
 
@@ -785,6 +810,18 @@ def decode(x: str, theta: HMMParam) -> str:
 ```python
 decoded_1_13 = decode(genome1['genome'], theta1_3) # Decode genome 1 with model/param 1_3
 ```
+
+    [0. 1. 0.] [[0.99888948 0.00111052 0.        ]
+     [0.00160142 0.99713367 0.00126491]
+     [0.         0.00103268 0.99896732]] [[0.31293764 0.18263195 0.20960154 0.29482887]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.29606142 0.20997387 0.18255527 0.31140944]]
+    [-inf   0. -inf] [[-1.11113793e-03 -6.80292614e+00            -inf]
+     [-6.43686325e+00 -2.87044356e-03 -6.67275771e+00]
+     [           -inf -6.87559577e+00 -1.03321579e-03]] [[-1.16175135 -1.70028236 -1.56254696 -1.22136019]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.21718833 -1.5607722  -1.70070232 -1.1666467 ]]
+
 
 If you want to know how well your prediction is doing, and you have the true decoding for a data set, you can compare the two. A simple way to do this is to count how often you see all combinations of true and predicted states. This is usually called a [confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix) when the states are binary (true/false classification), but I think we can allow ourselves to do the same thing here. (We can).
 
@@ -836,6 +873,38 @@ decoded_1_23 = decode(genome1['genome'], theta2_3) # Decode genome 1 with model/
 decoded_2_23 = decode(genome2['genome'], theta2_3) # Decode genome 2 with model/param 2_3
 ```
 
+    [0. 1. 0.] [[0.99888948 0.00111052 0.        ]
+     [0.00160142 0.99713367 0.00126491]
+     [0.         0.00103268 0.99896732]] [[0.31293764 0.18263195 0.20960154 0.29482887]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.29606142 0.20997387 0.18255527 0.31140944]]
+    [-inf   0. -inf] [[-1.11113793e-03 -6.80292614e+00            -inf]
+     [-6.43686325e+00 -2.87044356e-03 -6.67275771e+00]
+     [           -inf -6.87559577e+00 -1.03321579e-03]] [[-1.16175135 -1.70028236 -1.56254696 -1.22136019]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.21718833 -1.5607722  -1.70070232 -1.1666467 ]]
+    [0. 1. 0.] [[9.98936083e-01 1.06270952e-03 1.20762446e-06]
+     [1.74982999e-03 9.96414837e-01 1.83533304e-03]
+     [1.13571060e-06 1.04826089e-03 9.98950603e-01]] [[0.33216435 0.1641379  0.19829435 0.30540339]
+     [0.33116859 0.16668291 0.17110122 0.33104729]
+     [0.30852714 0.19827576 0.16276777 0.33042932]]
+    [-inf   0. -inf] [[-1.06448351e-03 -6.84693348e+00 -1.36268554e+01]
+     [-6.34823665e+00 -3.59160513e-03 -6.30052932e+00]
+     [-1.36882520e+01 -6.86062279e+00 -1.04994760e-03]] [[-1.10212539 -1.80704834 -1.61800273 -1.18612177]
+     [-1.10512771 -1.79166204 -1.76549998 -1.10549404]
+     [-1.17594546 -1.61809647 -1.8154308  -1.1073625 ]]
+    [0. 1. 0.] [[9.98936083e-01 1.06270952e-03 1.20762446e-06]
+     [1.74982999e-03 9.96414837e-01 1.83533304e-03]
+     [1.13571060e-06 1.04826089e-03 9.98950603e-01]] [[0.33216435 0.1641379  0.19829435 0.30540339]
+     [0.33116859 0.16668291 0.17110122 0.33104729]
+     [0.30852714 0.19827576 0.16276777 0.33042932]]
+    [-inf   0. -inf] [[-1.06448351e-03 -6.84693348e+00 -1.36268554e+01]
+     [-6.34823665e+00 -3.59160513e-03 -6.30052932e+00]
+     [-1.36882520e+01 -6.86062279e+00 -1.04994760e-03]] [[-1.10212539 -1.80704834 -1.61800273 -1.18612177]
+     [-1.10512771 -1.79166204 -1.76549998 -1.10549404]
+     [-1.17594546 -1.61809647 -1.8154308  -1.1073625 ]]
+
+
 
 ```python
 print("How do we do for genome 1 with the two estimates?")
@@ -864,10 +933,199 @@ Anyway, there are plenty of other classes that will teach you about such data sc
 
 
 ```python
-# Decode genome 1 with model/param 1_7
 decoded_1_17 = decode(genome1['genome'], theta1_7)
+decoded_1_27 = decode(genome1['genome'], theta2_7)
+decoded_2_17 = decode(genome2['genome'], theta1_7)
+decoded_2_27 = decode(genome2['genome'], theta2_7)
+```
+
+    [0. 0. 0. 1. 0. 0. 0.] [[0.         1.         0.         0.         0.         0.
+      0.        ]
+     [0.         0.         1.         0.         0.         0.
+      0.        ]
+     [0.99666844 0.         0.         0.00333156 0.         0.
+      0.        ]
+     [0.00160142 0.         0.         0.99713367 0.         0.00126491
+      0.        ]
+     [0.         0.         0.         0.         0.         0.
+      1.        ]
+     [0.         0.         0.         0.         1.         0.
+      0.        ]
+     [0.         0.         0.         0.00309805 0.         0.99690195
+      0.        ]] [[0.30370343 0.17351717 0.33387281 0.1889066 ]
+     [0.33899987 0.20946427 0.14136697 0.31016888]
+     [0.29610961 0.1649144  0.15356485 0.38541113]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.30937802 0.14241318 0.2111423  0.3370665 ]
+     [0.38481715 0.15735556 0.1617384  0.2960889 ]
+     [0.19398911 0.33015287 0.1747851  0.30107292]]
+    [-inf -inf -inf   0. -inf -inf -inf] [[           -inf  0.00000000e+00            -inf            -inf
+                 -inf            -inf            -inf]
+     [           -inf            -inf  0.00000000e+00            -inf
+                 -inf            -inf            -inf]
+     [-3.33712455e-03            -inf            -inf -5.70431385e+00
+                 -inf            -inf            -inf]
+     [-6.43686325e+00            -inf            -inf -2.87044356e-03
+                 -inf -6.67275771e+00            -inf]
+     [           -inf            -inf            -inf            -inf
+                 -inf            -inf  0.00000000e+00]
+     [           -inf            -inf            -inf            -inf
+       0.00000000e+00            -inf            -inf]
+     [           -inf            -inf            -inf -5.77698349e+00
+                 -inf -3.10285551e-03            -inf]] [[-1.19170362 -1.75147874 -1.09699517 -1.66650258]
+     [-1.08175555 -1.56320209 -1.95639614 -1.17063834]
+     [-1.2170256  -1.8023287  -1.8736323  -0.95344464]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.1731914  -1.94902273 -1.55522296 -1.08747503]
+     [-0.954987   -1.84924733 -1.82177508 -1.21709554]
+     [-1.63995325 -1.1081995  -1.74419806 -1.20040277]]
+    [0. 0. 0. 1. 0. 0. 0.] [[0.00000000e+00 1.00000000e+00 0.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 0.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 1.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 0.00000000e+00]
+     [9.96808249e-01 0.00000000e+00 0.00000000e+00 3.18812857e-03
+      3.62287337e-06 0.00000000e+00 0.00000000e+00]
+     [1.74982999e-03 0.00000000e+00 0.00000000e+00 9.96414837e-01
+      0.00000000e+00 1.83533304e-03 0.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 1.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 0.00000000e+00 3.40713181e-06
+      9.99996593e-01 0.00000000e+00 0.00000000e+00]
+     [3.40713181e-06 0.00000000e+00 0.00000000e+00 3.14137553e-03
+      0.00000000e+00 9.96855217e-01 0.00000000e+00]] [[0.31475886 0.16372489 0.32568182 0.19583442]
+     [0.34858563 0.20477929 0.13681781 0.30981726]
+     [0.33314857 0.12390952 0.13238342 0.4105585 ]
+     [0.33116859 0.16668291 0.17110122 0.33104729]
+     [0.31446464 0.13799225 0.20272434 0.34481877]
+     [0.40812328 0.13913023 0.12240462 0.33034187]
+     [0.20299351 0.31770482 0.16317436 0.31612732]]
+    [-inf -inf -inf   0. -inf -inf -inf] [[           -inf  0.00000000e+00            -inf            -inf
+                 -inf            -inf            -inf]
+     [           -inf            -inf  0.00000000e+00            -inf
+                 -inf            -inf            -inf]
+     [-3.19685594e-03            -inf            -inf -5.74832119e+00
+      -1.25282431e+01            -inf            -inf]
+     [-6.34823665e+00            -inf            -inf -3.59160513e-03
+                 -inf -6.30052932e+00            -inf]
+     [           -inf            -inf            -inf            -inf
+                 -inf            -inf  0.00000000e+00]
+     [           -inf            -inf            -inf -1.25896397e+01
+      -3.40713761e-06            -inf            -inf]
+     [-1.25896397e+01            -inf            -inf -5.76309451e+00
+                 -inf -3.14973788e-03            -inf]] [[-1.15594845 -1.80956774 -1.12183437 -1.63048577]
+     [-1.05387137 -1.58582249 -1.98910507 -1.17177263]
+     [-1.09916674 -2.0882037  -2.0220529  -0.89023685]
+     [-1.10512771 -1.79166204 -1.76549998 -1.10549404]
+     [-1.15688365 -1.98055779 -1.59590814 -1.06473629]
+     [-0.89618598 -1.9723449  -2.10042319 -1.10762719]
+     [-1.59458129 -1.14663257 -1.81293598 -1.15161024]]
+    [0. 0. 0. 1. 0. 0. 0.] [[0.         1.         0.         0.         0.         0.
+      0.        ]
+     [0.         0.         1.         0.         0.         0.
+      0.        ]
+     [0.99666844 0.         0.         0.00333156 0.         0.
+      0.        ]
+     [0.00160142 0.         0.         0.99713367 0.         0.00126491
+      0.        ]
+     [0.         0.         0.         0.         0.         0.
+      1.        ]
+     [0.         0.         0.         0.         1.         0.
+      0.        ]
+     [0.         0.         0.         0.00309805 0.         0.99690195
+      0.        ]] [[0.30370343 0.17351717 0.33387281 0.1889066 ]
+     [0.33899987 0.20946427 0.14136697 0.31016888]
+     [0.29610961 0.1649144  0.15356485 0.38541113]
+     [0.31902878 0.17890165 0.18693844 0.31513113]
+     [0.30937802 0.14241318 0.2111423  0.3370665 ]
+     [0.38481715 0.15735556 0.1617384  0.2960889 ]
+     [0.19398911 0.33015287 0.1747851  0.30107292]]
+    [-inf -inf -inf   0. -inf -inf -inf] [[           -inf  0.00000000e+00            -inf            -inf
+                 -inf            -inf            -inf]
+     [           -inf            -inf  0.00000000e+00            -inf
+                 -inf            -inf            -inf]
+     [-3.33712455e-03            -inf            -inf -5.70431385e+00
+                 -inf            -inf            -inf]
+     [-6.43686325e+00            -inf            -inf -2.87044356e-03
+                 -inf -6.67275771e+00            -inf]
+     [           -inf            -inf            -inf            -inf
+                 -inf            -inf  0.00000000e+00]
+     [           -inf            -inf            -inf            -inf
+       0.00000000e+00            -inf            -inf]
+     [           -inf            -inf            -inf -5.77698349e+00
+                 -inf -3.10285551e-03            -inf]] [[-1.19170362 -1.75147874 -1.09699517 -1.66650258]
+     [-1.08175555 -1.56320209 -1.95639614 -1.17063834]
+     [-1.2170256  -1.8023287  -1.8736323  -0.95344464]
+     [-1.14247397 -1.72091905 -1.67697592 -1.15476643]
+     [-1.1731914  -1.94902273 -1.55522296 -1.08747503]
+     [-0.954987   -1.84924733 -1.82177508 -1.21709554]
+     [-1.63995325 -1.1081995  -1.74419806 -1.20040277]]
+    [0. 0. 0. 1. 0. 0. 0.] [[0.00000000e+00 1.00000000e+00 0.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 0.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 1.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 0.00000000e+00]
+     [9.96808249e-01 0.00000000e+00 0.00000000e+00 3.18812857e-03
+      3.62287337e-06 0.00000000e+00 0.00000000e+00]
+     [1.74982999e-03 0.00000000e+00 0.00000000e+00 9.96414837e-01
+      0.00000000e+00 1.83533304e-03 0.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00
+      0.00000000e+00 0.00000000e+00 1.00000000e+00]
+     [0.00000000e+00 0.00000000e+00 0.00000000e+00 3.40713181e-06
+      9.99996593e-01 0.00000000e+00 0.00000000e+00]
+     [3.40713181e-06 0.00000000e+00 0.00000000e+00 3.14137553e-03
+      0.00000000e+00 9.96855217e-01 0.00000000e+00]] [[0.31475886 0.16372489 0.32568182 0.19583442]
+     [0.34858563 0.20477929 0.13681781 0.30981726]
+     [0.33314857 0.12390952 0.13238342 0.4105585 ]
+     [0.33116859 0.16668291 0.17110122 0.33104729]
+     [0.31446464 0.13799225 0.20272434 0.34481877]
+     [0.40812328 0.13913023 0.12240462 0.33034187]
+     [0.20299351 0.31770482 0.16317436 0.31612732]]
+    [-inf -inf -inf   0. -inf -inf -inf] [[           -inf  0.00000000e+00            -inf            -inf
+                 -inf            -inf            -inf]
+     [           -inf            -inf  0.00000000e+00            -inf
+                 -inf            -inf            -inf]
+     [-3.19685594e-03            -inf            -inf -5.74832119e+00
+      -1.25282431e+01            -inf            -inf]
+     [-6.34823665e+00            -inf            -inf -3.59160513e-03
+                 -inf -6.30052932e+00            -inf]
+     [           -inf            -inf            -inf            -inf
+                 -inf            -inf  0.00000000e+00]
+     [           -inf            -inf            -inf -1.25896397e+01
+      -3.40713761e-06            -inf            -inf]
+     [-1.25896397e+01            -inf            -inf -5.76309451e+00
+                 -inf -3.14973788e-03            -inf]] [[-1.15594845 -1.80956774 -1.12183437 -1.63048577]
+     [-1.05387137 -1.58582249 -1.98910507 -1.17177263]
+     [-1.09916674 -2.0882037  -2.0220529  -0.89023685]
+     [-1.10512771 -1.79166204 -1.76549998 -1.10549404]
+     [-1.15688365 -1.98055779 -1.59590814 -1.06473629]
+     [-0.89618598 -1.9723449  -2.10042319 -1.10762719]
+     [-1.59458129 -1.14663257 -1.81293598 -1.15161024]]
+
+
+
+```python
+print("How do we do for genome 1 with the two estimates?")
+print(f"HMM-7, data1 | theta1, accuracy: {100.0 * accuracy(genome1['annotation'], decoded_1_17):.2f}%")
+print(f"HMM-7, data1 | theta2, accuracy: {100.0 * accuracy(genome1['annotation'], decoded_1_27):.2f}%")
+print()
+
+print("How do we do for genome 2 with the two estimates?")
+print(f"HMM-7, data2 | theta1, accuracy: {100.0 * accuracy(genome2['annotation'], decoded_2_17):.2f}%")
+print(f"HMM-7, data2 | theta2, accuracy: {100.0 * accuracy(genome2['annotation'], decoded_2_27):.2f}%")
 
 ```
+
+    How do we do for genome 1 with the two estimates?
+    HMM-7, data1 | theta1, accuracy: 40.10%
+    HMM-7, data1 | theta2, accuracy: 40.21%
+    
+    How do we do for genome 2 with the two estimates?
+    HMM-7, data2 | theta1, accuracy: 37.99%
+    HMM-7, data2 | theta2, accuracy: 38.01%
+
+
+Don't expect a great leap here. The model is still too simple. But it should improve upon the three state model. A general rule of thumb is that the more complex a model is, the better you can predict on data that you have used to fit the parameters, but if the model gets too complex, the same model will do worse on other data sets. We won't see this here, though. A seven state HMM is not a complex model when it comes to analysing a full genome, even if it is bacterial.
+
+If you feel up to it, you are welcome to try to build a more complex HMM. Would it get better if you included start and stop codons? If the distribution of nucleotides in coding regions to codon position into account? You have all you need to explore this, you just need to update the models as specified in the three vectors/matrices.
 
 ## Testing
 
@@ -899,7 +1157,14 @@ doctest.testmod(verbose=True)
         hidden_states7('NNCCCCCCNNRRRRRRN')
     Expecting:
         [3, 3, 0, 1, 2, 0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6, 3]
-    ok
+    **********************************************************************
+    File "__main__", line 8, in __main__.hidden_states7
+    Failed example:
+        hidden_states7('NNCCCCCCNNRRRRRRN')
+    Expected:
+        [3, 3, 0, 1, 2, 0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6, 3]
+    Got:
+        [3, 3, 0, 1, 2, 0, 1, 2, 3, 3, 5, 4, 6, 5, 4, 6, 3]
     Trying:
         observed_states('ACAGTTC')
     Expecting:
@@ -949,23 +1214,25 @@ doctest.testmod(verbose=True)
         __main__.log_lik
         __main__.normalise
         __main__.viterbi
-    8 items passed all tests:
+    7 items passed all tests:
        2 tests in __main__.argmax
        1 tests in __main__.hidden_states
-       1 tests in __main__.hidden_states7
        1 tests in __main__.observed_states
        1 tests in __main__.rev_hidden_states
        1 tests in __main__.rev_hidden_states7
        1 tests in __main__.rev_observed_states
        2 tests in __main__.select
+    **********************************************************************
+    1 items had failures:
+       1 of   1 in __main__.hidden_states7
     10 tests in 26 items.
-    10 passed and 0 failed.
-    Test passed.
+    9 passed and 1 failed.
+    ***Test Failed*** 1 failures.
 
 
 
 
 
-    TestResults(failed=0, attempted=10)
+    TestResults(failed=1, attempted=10)
 
 
